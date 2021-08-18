@@ -2,6 +2,9 @@
 
 A React library to help developers add files upload feature to web3 world - IPFS/Filecoin easily.
 
+![web3-uploader](https://user-images.githubusercontent.com/79720925/129893747-c2487f37-bd95-4bed-8535-1f3d651be48d.png)
+
+
 ## How to use
 
 ```bash
