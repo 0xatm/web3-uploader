@@ -8,6 +8,10 @@ A React library to help developers add files upload feature to web3 world - IPFS
 ## How to use
 
 ```bash
+yarn add web3-uploader
+
+import Web3Uploader from 'web3-uploader'
+
 <Web3Uploader
   apiToken="WEB3.STORAGE-TOKEN"
   onUploaded={handleUploaded}
@@ -15,7 +19,7 @@ A React library to help developers add files upload feature to web3 world - IPFS
 />
 ```
 
-* `apiToken` The web3.storage token.
+* `apiToken` The web3.storage token, follow up the steps of [#Get an API token](https://docs.web3.storage/#get-an-api-token) to get a web3.storage API token.
 
 * `onUploaded` The callback once all files uploaded to IPFS/Filecoin
 
