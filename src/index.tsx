@@ -1,7 +1,8 @@
+// @ts-ignore
+import { Web3Storage } from 'web3.storage/dist/bundle.esm.min.js';
 import React, { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Web3Storage, getFilesFromPath } from 'web3.storage';
-import { CIDString, Filelike } from 'web3.storage/dist/src/lib/interface';
+import { CIDString } from 'web3.storage/dist/src/lib/interface';
 import './uploader.css';
 
 
@@ -21,33 +22,41 @@ interface Upload {
 }
 
 const Web3Uploader = ({ apiToken, accept, maxFiles = 0, onLoading, onUploaded, disabled = false, canUpload = true }: Uploader): JSX.Element => {
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [storage, setStorage] = useState<Web3Storage>();
-  const [fileList, setFileList] = useState<Filelike[]>([]);
-
 
   useEffect(() => {
     setStorage(new Web3Storage({ token: apiToken }))
   }, [])
 
   useEffect(() => {
-    if (canUpload && storage) {
+    if (files.length > 0 && canUpload && storage) {
       files.forEach(async (file: any) => {
-        const pathFiles = await getFilesFromPath(file);
-        // @ts-ignore
-        setFileList(pathFiles);
         URL.revokeObjectURL(file.preview);
       })
 
-      storage.put(fileList);
-      upload();
+      upload(files);
     }
   }, [files, canUpload, storage])
 
-  const upload = async () => {
-    const rootCid = await storage?.put(fileList);
+  const upload = async (fileList: File[]) => {
+    // show the root cid as soon as it's ready
+    const onRootCidReady = (cid: string) => {
+      console.log('uploading files with cid:', cid)
+    }
+
+    // when each chunk is stored, update the percentage complete and display
+    const totalSize = fileList.map(f => f.size).reduce((a, b) => a + b, 0)
+    let uploaded = 0
+
+    const onStoredChunk = (size: number) => {
+      uploaded += size
+      const pct = totalSize / uploaded
+      console.log(`Uploading... ${pct.toFixed(2)}% complete`)
+    }
+
+    const rootCid = await storage?.put(fileList, { onRootCidReady, onStoredChunk });
     const res = rootCid && await storage?.get(rootCid)
-    console.log(`Got a response! [${res?.status}] ${res?.statusText}`)
     if (!res?.ok) {
       throw new Error(`failed to get ${rootCid} - [${res?.status}] ${res?.statusText}`)
     }
@@ -88,8 +97,8 @@ const Web3Uploader = ({ apiToken, accept, maxFiles = 0, onLoading, onUploaded, d
   });
 
   return (
-    <>
-      <div {...getRootProps()}>
+    <section className="container">
+      <div {...getRootProps({ className: "dropzone" })}>
         <input {...getInputProps()} />
         <p>Drag 'n' drop some files here, or click to select files</p>
         {
@@ -99,7 +108,7 @@ const Web3Uploader = ({ apiToken, accept, maxFiles = 0, onLoading, onUploaded, d
           maxFiles ? `<em>(${maxFiles} files are the maximum number of files you can drop here)</em>` : ''
         }
       </div>
-    </>
+    </section>
   );
 };
 
